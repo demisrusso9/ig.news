@@ -10,8 +10,8 @@ interface SubscribeButtonProps {
 export function SubscribeButton({ priceId }: SubscribeButtonProps) {
   const { data: session } = useSession()
 
-  // If not logged
   async function handleSubscribe() {
+    // If not logged
     if (!session) {
       signIn('github')
       return
@@ -19,9 +19,10 @@ export function SubscribeButton({ priceId }: SubscribeButtonProps) {
 
     // If logged in, create checkout
     try {
+      const stripe = await getStripeJs()
       const { sessionId } = await api.post('/subscribe').then(res => res.data)
 
-      const stripe = await getStripeJs()
+      // New to a checkout page
       stripe.redirectToCheckout({ sessionId })
     } catch (err) {
       console.log(err)

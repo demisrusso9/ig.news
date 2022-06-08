@@ -19,18 +19,21 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     // Get session from cookies
     const session = await getSession({ req })
 
+    // get user in the FaunaDB using email
     const user = await fauna.query<User>(
       q.Get(q.Match(q.Index('user_by_email'), q.Casefold(session.user.email)))
     )
 
+    // Get the user id on the field stripe_customer_id
     let customerId = user.data.stripe_customer_id
 
-    // Create a user on the STRIPE platform
+    // If not exists a stripe_customer_id, create a user on the STRIPE platform
     if (!customerId) {
       const stripeCustomer = await stripe.customers.create({
         email: session.user.email
       })
 
+      // Add a field stripe_customer_id
       await fauna.query(
         q.Update(q.Ref(q.Collection('users'), user.ref.id), {
           data: {
@@ -59,6 +62,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       cancel_url: process.env.STRIPE_CANCEL_URL
     })
 
+    // return the sessionId to the front-end
     return res.status(200).json({ sessionId: stripeCheckoutSession.id })
   } else {
     res.setHeader('Allow', 'POST')
