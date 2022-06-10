@@ -1,7 +1,6 @@
-import { useState } from 'react'
-import Img from 'next/image'
 import styles from './styles.module.scss'
 import { SignInButton } from '../SignInButton'
+import { ActiveLink } from '../ActiveLink'
 
 export function Header() {
   return (
@@ -10,10 +9,13 @@ export function Header() {
         <img src='/images/logo.svg' alt='Logo ig.news' />
 
         <nav>
-          <a className={styles.active} href='#'>
-            Home
-          </a>
-          <a href='#'>Posts</a>
+          <ActiveLink href='/' active={styles.active}>
+            <a>Home</a>
+          </ActiveLink>
+
+          <ActiveLink href='/posts' active={styles.active}>
+            <a>Posts</a>
+          </ActiveLink>
         </nav>
 
         <SignInButton />

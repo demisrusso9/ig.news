@@ -1,14 +1,21 @@
 import { GetStaticProps } from 'next'
 import Head from 'next/head'
+import { RichText } from 'prismic-dom'
 import { createClient } from '../../services/prismic'
 import styles from './styles.module.scss'
 
-interface PostsProps {
-  posts: {}
+type Post = {
+  slug: string
+  title: string
+  excerpt: string
+  updated_at: string
 }
 
-export default function Posts({ posts }) {
-  console.log(posts)
+interface PostsProps {
+  posts: Post[]
+}
+
+export default function Posts({ posts }: PostsProps) {
   return (
     <>
       <Head>
@@ -17,35 +24,13 @@ export default function Posts({ posts }) {
 
       <main className={styles.container}>
         <div className={styles.posts}>
-          <a href='#'>
-            <time>12 de março de 1999</time>
-            <strong>
-              Mark Share Copy How We Can Overcome a Lust-Filled World
-            </strong>
-            <p>
-              Perhaps you have felt something similar. Dan’s struggle is common.
-            </p>
-          </a>
-
-          <a href='#'>
-            <time>12 de março de 1999</time>
-            <strong>
-              Mark Share Copy How We Can Overcome a Lust-Filled World
-            </strong>
-            <p>
-              Perhaps you have felt something similar. Dan’s struggle is common.
-            </p>
-          </a>
-
-          <a href='#'>
-            <time>12 de março de 1999</time>
-            <strong>
-              Mark Share Copy How We Can Overcome a Lust-Filled World
-            </strong>
-            <p>
-              Perhaps you have felt something similar. Dan’s struggle is common.
-            </p>
-          </a>
+          {posts.map(post => (
+            <a href='#' key={post.slug}>
+              <time>{post.updated_at}</time>
+              <strong>{post.title}</strong>
+              <p>{post.excerpt}</p>
+            </a>
+          ))}
         </div>
       </main>
     </>
@@ -54,12 +39,30 @@ export default function Posts({ posts }) {
 
 export const getStaticProps: GetStaticProps = async ({ previewData }) => {
   const client = createClient({ previewData })
-  console.log({ client })
+
   const documents = await client.getByType('post', {
     pageSize: 100
   })
 
+  const posts = documents.results.map(post => {
+    return {
+      slug: post.uid,
+      title: RichText.asText(post.data.title),
+      excerpt:
+        post.data.content.find(content => content.type === 'paragraph')?.text ??
+        '',
+      updated_at: new Date(post.last_publication_date).toLocaleDateString(
+        'pt-Br',
+        {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric'
+        }
+      )
+    }
+  })
+
   return {
-    props: { posts: documents.results } // Will be passed to the page component as props
+    props: { posts } // Will be passed to the page component as props
   }
 }
