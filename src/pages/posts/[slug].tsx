@@ -25,20 +25,14 @@ export default function Post({ post }: PostProps) {
         <article className={styles.post}>
           <h1>{post.title}</h1>
           <time>{post.updatedAt}</time>
-          <div
-            className={styles.postContent}
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
+          <div className={styles.postContent} dangerouslySetInnerHTML={{ __html: post.content }} />
         </article>
       </main>
     </>
   )
 }
 
-export const getServerSideProps: GetServerSideProps = async ({
-  req,
-  params
-}) => {
+export const getServerSideProps: GetServerSideProps = async ({ req, params }) => {
   // Search for cookies to see if user is authenticated
   const session = await getSession({ req })
 
@@ -61,16 +55,13 @@ export const getServerSideProps: GetServerSideProps = async ({
 
   const post = {
     slug,
-    title: RichText.asText(response.data.title),
+    title: response.data.title[0].text,
     content: RichText.asHtml(response.data.content),
-    updatedAt: new Date(response.last_publication_date).toLocaleDateString(
-      'pt-Br',
-      {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric'
-      }
-    )
+    updatedAt: new Date(response.last_publication_date).toLocaleDateString('pt-Br', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    })
   }
 
   return {

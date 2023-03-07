@@ -4,18 +4,13 @@ import { api } from '../../services/api'
 import { getStripeJs } from '../../services/stripe-js'
 import { useRouter } from 'next/router'
 
-interface SubscribeButtonProps {
-  priceId: string
-}
-
-export function SubscribeButton({ priceId }: SubscribeButtonProps) {
+export function SubscribeButton() {
   const { data: session } = useSession()
   const router = useRouter()
 
   const member = session?.activeSubscription
 
   async function handleSubscribe() {
-    // If not logged
     if (!session) {
       signIn('github')
       return
@@ -26,24 +21,18 @@ export function SubscribeButton({ priceId }: SubscribeButtonProps) {
       return
     }
 
-    // If logged in, create checkout
     try {
       const stripe = await getStripeJs()
       const { sessionId } = await api.post('/subscribe').then(res => res.data)
-
-      // New to a checkout page
+      
       stripe.redirectToCheckout({ sessionId })
     } catch (err) {
-      console.log(err)
+      console.log({err})
     }
   }
 
   return (
-    <button
-      type='button'
-      className={styles.subscribeButton}
-      onClick={handleSubscribe}
-    >
+    <button type='button' className={styles.subscribeButton} onClick={handleSubscribe}>
       {member ? 'See Posts' : 'Subscribe now'}
     </button>
   )
